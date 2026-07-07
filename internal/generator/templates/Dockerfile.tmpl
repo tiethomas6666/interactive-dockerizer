@@ -1,0 +1,35 @@
+{{- if eq .Language "Go" -}}
+FROM golang:1.22-alpine AS builder
+WORKDIR /app
+COPY . .
+RUN go build -o main .
+
+FROM alpine:latest
+WORKDIR /root/
+COPY --from=builder /app/main .
+EXPOSE {{.Port}}
+CMD ["./main"]
+{{- else if eq .Language "Node.js" -}}
+FROM node:18-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+EXPOSE {{.Port}}
+CMD ["npm", "start"]
+{{- else if eq .Language "Python" -}}
+FROM python:3.11-slim
+WORKDIR /app
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
+COPY . .
+EXPOSE {{.Port}}
+CMD ["python", "app.py"]
+{{- else -}}
+FROM {{.CustomImage}}
+WORKDIR /app
+COPY . .
+# TODO: Add your installation steps here
+EXPOSE {{.Port}}
+# CMD ["your", "start", "command"]
+{{- end -}}

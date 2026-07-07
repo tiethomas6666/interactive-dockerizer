@@ -1,0 +1,40 @@
+services:
+  app:
+    build: .
+    ports:
+      - "{{.Port}}:{{.Port}}"
+{{- if ne .Database "None"}}
+  db:
+{{- if eq .Database "MySQL"}}
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: myapp
+    ports:
+      - "3306:3306"
+{{- else if eq .Database "PostgreSQL"}}
+    image: postgres:15
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: myapp
+    ports:
+      - "5432:5432"
+{{- else if eq .Database "MongoDB"}}
+    image: mongo:6.0
+    ports:
+      - "27017:27017"
+{{- end}}
+    volumes:
+      - db_data:/var/lib/mysql
+{{- end}}
+{{- if eq .Cache "Redis"}}
+  cache:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+{{- end}}
+{{- if ne .Database "None"}}
+volumes:
+  db_data:
+{{- end}}
